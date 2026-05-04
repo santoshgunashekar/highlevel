@@ -1,0 +1,67 @@
+---
+description: Flutter feature clean architecture — folder layout, BLoC, GetIt, DTOs, module DI, data flow
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Feature architecture (mandatory for new features)
+
+When designing or implementing a **feature**, use exactly this layout under `lib/<feature>/`, plus the DI files below. Do **not** add other extra files (no barrel files, helpers, or alternate folders unless the user explicitly asks).
+
+## App and module DI (GetIt)
+
+- **`lib/init.dart`** — exports `GetIt sl` (`GetIt.instance`) and `Future<void> configureDependencies()` for **app-wide** registrations only (e.g. `http.Client`, shared services). No feature-specific types here.
+- **`lib/<feature>/<feature>_di.dart`** — `abstract final class ExpenseDi`-style name: **PascalCase feature segment + `Di`** (folder `expense` → class `ExpenseDi`, file `expense_di.dart`). `static Future<void> initialize()` registers every GetIt binding for that feature (data sources, repository impl, use cases). Use `GetIt.instance` inside the module (or resolve deps via types already registered in core or other features). Prefer constructing blocs in `BlocProvider(create: ...)` in routes, not GetIt, unless the project standardizes bloc registration.
+- **`lib/main.dart`** — after `WidgetsFlutterBinding.ensureInitialized()`, call in order: `await configureDependencies();` then `await <Feature>Di.initialize();` for each feature (order matters when one module depends on types registered in core or another module). **`test/`** setup that resets GetIt must repeat the same sequence after `sl.reset()`.
+
+```text
+lib/
+  init.dart   # sl + configureDependencies() — core only
+  <feature>/
+    <feature>_di.dart   # <Feature>Di.initialize() — this feature’s GetIt registrations
+    data/
+      datasources/
+        <feature>_remote_data_source.dart
+        <feature>_local_data_source.dart
+      repository/
+        <feature>_repository_impl.dart
+      dtos/
+        <feature>_dto.dart   # json_serializable + json_annotation; mappers to domain models live here
+    domain/
+      repository/
+        <feature>_repository.dart
+      use_case/
+        <one dart file per use case / piece of functionality>.dart
+      model/
+        <relevant models>.dart
+    presentation/
+      bloc/
+        <feature>_bloc.dart
+        <feature>_event.dart
+        <feature>_state.dart
+      ui/
+        <feature>_screen.dart   # and/or route as needed
+        widgets/
+```
+
+## Stack and layer rules
+
+- **State:** `flutter_bloc` — UI talks only to the feature bloc (events in, states out).
+- **DI:** `get_it` — core in `init.dart`; each feature’s types in that feature’s `<feature>_di.dart` inside `initialize()` (see above).
+- **DTOs:** `json_serializable` + `json_annotation`; mapping **DTO ↔ domain model** belongs with the DTO (or in that DTO file), not scattered.
+- **Domain models:** Plain data holders — constructors (and fields/getters) only; **no** business logic, serialization, or framework types.
+- **Repository (domain):** Abstract contract in `domain/repository/`.
+- **Repository impl (data):** Implements that contract; inject and call **remote** and/or **local** data sources as the feature requires.
+
+## Data flow (strict)
+
+One direction for actions and results:
+
+`presentation (UI) → Bloc → UseCase → Repository → DataSource`  
+and back: `DataSource → Repository → UseCase → Bloc → UI`
+
+Do not skip layers (e.g. UI must not call repositories or data sources directly).
+
+## Naming
+
+Replace `<feature>` with the feature name (e.g. `auth`, `profile`). Use the same prefix for bloc, repository, DTO, and data source file names for that feature.

@@ -1,0 +1,101 @@
+---
+description: Dart/Flutter quality — package imports, i18n, theme colors, UI widgets, analyzer-clean
+globs: lib/**/*.dart
+alwaysApply: false
+---
+
+# Dart and Flutter code quality
+
+Apply these whenever editing Dart in this repo (`name: highlevel` in `pubspec.yaml`).
+
+## Imports (mandatory)
+
+- Use **package imports** for this app and dependencies. Do **not** use relative paths (`../`, `./`) to reach `lib/` or other project files.
+- Format: `package:highlevel/<path_under_lib>.dart` (mirror the path under `lib/`).
+
+```dart
+// Bad
+import '../domain/model/expense.dart';
+import './widgets/foo.dart';
+
+// Good
+import 'package:highlevel/expense/domain/model/expense.dart';
+import 'package:highlevel/expense/presentation/ui/widgets/foo.dart';
+```
+
+- `dart:` and `package:` imports only (plus generated part files `part '...g.dart';` where required).
+
+## UI composition (mandatory — no compromise)
+
+- **Do not** use **functions that return `Widget`** to structure UI (e.g. `Widget _buildHeader(...)`, `Widget _tile(Item item)`). No exceptions for “small” helpers — use widget classes.
+- **Do** extract UI into **private `StatelessWidget` subclasses** (or private `StatefulWidget` when you need state, lifecycle, or `AnimationController`, etc.) in the same file or a colocated file, named clearly (e.g. `_ExpenseListTile`, `_SummaryCard`).
+- Prefer **`const` constructors** on those private widgets when all inputs allow it.
+- Rationale: widget classes get stable element identity, work properly with `const`, DevTools, and rebuild boundaries; `Widget`-returning methods do not and are discouraged by the framework team for subtree extraction.
+
+```dart
+// Bad — function returning Widget
+Widget _buildTitle(String text) => Text(text);
+
+// Good — private StatelessWidget
+class _Title extends StatelessWidget {
+  const _Title({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) => Text(text);
+}
+```
+
+## Strings and i18n (mandatory)
+
+- **Do not hardcode** strings that the **end user** sees: titles, labels, `AppBar`/`Tooltip`/`Semantics` text, button and menu labels, placeholder/hint text, empty/error states, dialog and snackbar messages, and user-visible validation or error text.
+- **Do** load copy through **i18n** — keys in the project’s translation catalog (Flutter default: **ARB** files + **`flutter gen-l10n`** → use **`AppLocalizations.of(context)`** or an approved project wrapper/extension). Add new keys to ARB and reference them from widgets; do not inline English (or any language) for UI copy.
+- **OK to keep literals** for: `debugPrint` / debug-only output, identifiers and enum names not shown in UI, tests, regex and parsing, and **non-user** layers (e.g. internal repository keys) — but anything rendered in the UI must come from i18n.
+- When adding user-visible strings, **update every shipped locale** (or add the key to the default ARB and follow the team’s process for other languages).
+
+```dart
+// Bad — user-visible literal
+ElevatedButton(onPressed: onSave, child: const Text('Save'));
+
+// Good — from generated AppLocalizations (after ARB + gen-l10n)
+final l10n = AppLocalizations.of(context)!;
+ElevatedButton(onPressed: onSave, child: Text(l10n.saveAction));
+```
+
+## Colors and theme
+
+- **Prefer theme tokens** when the color’s meaning is **contextual / semantic** (surfaces, text on surfaces, dividers, primary actions, errors, disabled look): use **`Theme.of(context).colorScheme`**, **`Theme.of(context).textTheme`**, and widget defaults that inherit theme (`AppBar`, `Card`, `ListTile`, material buttons) instead of hardcoded `Color(0xFF…)` or scattered `Colors.*` that duplicate the palette.
+- Extend the app theme (`ThemeData`, `ColorScheme.fromSeed`, component themes) when the same role is reused across screens — do not re-specify the same hex in many widgets if it belongs in the theme.
+- **Exception (no theme required):** When design or product **explicitly** calls for a **fixed** color (e.g. brand lock-up, chart series, map marker, illustration, one-off marketing asset, WCAG-driven override), use a **`const Color(...)`** / named design token **local to that use** — it does **not** have to be added to `ThemeData` if it is not meant to track light/dark or global palette roles.
+
+```dart
+final scheme = Theme.of(context).colorScheme;
+// Prefer roles from ColorScheme for typical UI
+Text('Hello', style: TextStyle(color: scheme.onSurface));
+// Fixed brand/spec color — OK without theme when required
+const brandAccent = Color(0xFF00AA66);
+```
+
+## Analyzer and lints
+
+- Changes must leave **`dart analyze` with zero issues** (no errors or warnings) for the project.
+- Respect `analysis_options.yaml` and `flutter_lints`. Do not silence lints with `// ignore:` unless there is a documented, unavoidable reason in that spot.
+
+## Comments
+
+- Prefer **self-explanatory names** over comments. Remove comments that only restate the code, TODO placeholders without owners, or commented-out dead code.
+- Keep comments for **non-obvious rationale**, invariants, or public API contracts where they add real value.
+
+## Additional practices (high impact)
+
+1. **Const:** Use `const` on widgets and constructors whenever values are compile-time constant to reduce rebuild work.
+2. **Immutability:** Prefer `final` for locals and fields; use `var` only when reassignment is required.
+3. **Build method:** Keep `build` cheap — no async work, I/O, or heavy computation; move that to blocs/use cases/initState/futures.
+4. **Async + context:** After `await`, before using `BuildContext`, call `if (!context.mounted) return;` (or equivalent) to avoid using disposed widgets.
+5. **Dispose:** Override `dispose` and dispose `TextEditingController`, `AnimationController`, `ScrollController`, `FocusNode`, cancel `StreamSubscription` / timers created by the widget.
+6. **Lists:** Prefer `ListView.builder` / `SliverList` (or paginated APIs) for long or unbounded lists instead of building all children eagerly.
+7. **Keys:** Use `Key` / `ValueKey` when list order changes, or when Flutter must distinguish sibling widgets of the same type.
+8. **Errors:** Do not use empty `catch` blocks; log, handle with typed failures, or rethrow. Align with the project’s error model (e.g. bloc/repo patterns).
+9. **Logging:** Avoid `print` in app/library code; use `debugPrint` or the project’s logging approach.
+10. **Types:** Prefer explicit types on public APIs and non-obvious members; avoid `dynamic` unless intentionally interoperating with untyped data (then narrow quickly).
+
+When adding code, **run `dart analyze`** (or `flutter analyze`) and fix all reported issues before finishing.

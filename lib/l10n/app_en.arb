@@ -1,0 +1,113 @@
+{
+  "@@locale": "en",
+  "appTitle": "Highlevel",
+  "gamificationDemoTitle": "Gamification demo",
+  "gamificationLoadError": "Could not load gamification. Try again.",
+  "gamificationRetryAction": "Retry",
+  "gamificationSectionProfile": "Progress",
+  "gamificationSectionBadges": "Badges",
+  "gamificationSectionChallenges": "Challenges",
+  "gamificationSectionSimulate": "Simulate activity",
+  "gamificationLevelLabel": "Level {level}",
+  "@gamificationLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationXpLabel": "{current} / {next} XP to next level",
+  "@gamificationXpLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "next": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationStreakLabel": "Streak {current} (best {best})",
+  "@gamificationStreakLabel": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "best": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationBadgeTitleQuickLearner": "Quick learner",
+  "gamificationBadgeTitleCommunityHelper": "Community helper",
+  "gamificationBadgeProgress": "{title} — {progress} / {target}",
+  "@gamificationBadgeProgress": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationBadgeUnlockedLabel": "Unlocked",
+  "gamificationChallengeTitleWeekly": "Weekly tasks",
+  "gamificationChallengeProgress": "{title}: {progress} / {target}",
+  "@gamificationChallengeProgress": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "progress": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationEventLessonCompleted": "Lesson completed",
+  "gamificationEventCommentCreated": "Comment created",
+  "gamificationEventPostCreated": "Post created",
+  "gamificationEventPeerReview": "Peer review",
+  "gamificationEventTaskCompleted": "Task completed",
+  "gamificationEventDailyLogin": "Daily login",
+  "gamificationMockPostLikeSemanticsLabel": "Simulate a post like using a comment-created event",
+  "gamificationMockPostLikeButtonLabel": "Post liked (mock)",
+  "gamificationDuplicateEventMessage": "That activity was already counted.",
+  "gamificationLeaderboardTitle": "Leaderboard",
+  "gamificationLeaderboardLoadMore": "Load more",
+  "gamificationLeaderboardEmpty": "No leaderboard entries yet.",
+  "gamificationLeaderboardXpLabel": "{xp} XP",
+  "@gamificationLeaderboardXpLabel": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationLeaderboardRankLabel": "#{rank}",
+  "@gamificationLeaderboardRankLabel": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "gamificationLeaderboardAvatarSemantics": "Avatar for {userName}",
+  "@gamificationLeaderboardAvatarSemantics": {
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "gamificationLeaderboardRankTrendUp": "Rank trending up",
+  "gamificationLeaderboardRankTrendDown": "Rank trending down",
+  "gamificationLeaderboardRankTrendSame": "Rank unchanged",
+  "gamificationLeaderboardOpenTooltip": "Open leaderboard"
+}
